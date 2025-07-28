@@ -1,0 +1,67 @@
+﻿@{
+    Layout = "/Features/MediaFiles/Views/Shared/_Layout.cshtml";
+
+    ViewData["Title"] = "Upload Media File";
+}
+
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<div class="mb-3">
+    <a href="/MediaFileView/Index" class="btn btn-secondary">← Danh sách File</a>
+</div>
+
+<div id="result" class="my-3"></div>
+
+<form id="uploadForm" enctype="multipart/form-data" class="card p-4 shadow-sm">
+    <div class="mb-3">
+        <label class="form-label">Chọn File</label>
+        <input type="file" name="File" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Mô tả</label>
+        <input type="text" name="Description" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Tags</label>
+        <input type="text" name="Tags" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Người Upload</label>
+        <input type="text" name="UploadedBy" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">⬆️ Tải lên</button>
+</form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        function showAlert(type, message) {
+            const alertClass = type === "success" ? "alert-success" : "alert-danger";
+            $('#result').html(`<div class="alert ${alertClass}" role="alert">${message}</div>`);
+        }
+
+        $(document).ready(function () {
+            $('#uploadForm').submit(function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                $.ajax({
+                    url: '/api/mediafiles/upload',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function () {
+                        showAlert("success", "✅ Upload thành công!");
+                        $('#uploadForm')[0].reset();
+                    },
+                    error: function (xhr) {
+                        const errorText = xhr.responseText || "Đã xảy ra lỗi.";
+                        showAlert("error", `❌ Upload thất bại: ${errorText}`);
+                    }
+                });
+            });
+        });
+    </script>
+}

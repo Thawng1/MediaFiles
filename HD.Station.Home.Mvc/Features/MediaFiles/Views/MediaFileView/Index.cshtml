@@ -1,0 +1,286 @@
+﻿@{
+    Layout = "/Features/MediaFiles/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Danh sách Media Files";
+}
+
+<!-- Title đẹp + nút -->
+<!-- Sticky top header bar -->
+<div class="sticky-top z-3 bg-white shadow-sm px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
+    <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-collection-play-fill fs-2 text-primary"></i>
+        <h1 class="h4 fw-bold text-dark mb-0">@ViewData["Title"]</h1>
+    </div>
+
+    <a href="/MediaFileView/Upload" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4 py-2">
+        <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
+        <span class="fw-semibold">Tải lên File</span>
+    </a>
+</div>
+
+
+<div id="mediaContainer" class="row g-4"></div>
+
+<!-- Modal: Preview -->
+<div class="modal fade" id="mediaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xem file</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center" id="mediaModalContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa thông tin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editFileId" />
+                <div class="mb-3">
+                    <label>Tên file</label>
+                    <input type="text" class="form-control" id="editFileName" />
+                </div>
+                <div class="mb-3">
+                    <label>Người upload</label>
+                    <input type="text" class="form-control" id="editUploadedBy" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="submitEdit()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Detail -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🧾 Chi tiết Media File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3" id="detailMediaPreview"></div>
+                <div class="row" id="detailInfoContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    
+    .sticky-top {
+        backdrop-filter: blur(4px);
+        background-color: rgba(255, 255, 255, 0.95);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-primary {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+        .btn-primary:hover {
+            background-color: #1e40af;
+            border-color: #1e40af;
+        }
+
+    .h4.fw-bold {
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .media-detail-item {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        font-size: 15px;
+        border-bottom: 1px dashed #dee2e6;
+        padding-bottom: 8px;
+    }
+
+        .media-detail-item i {
+            width: 25px;
+            color: #0d6efd;
+            text-align: center;
+            margin-right: 10px;
+        }
+
+    .media-detail-label {
+        font-weight: 500;
+        width: 140px;
+        color: #555;
+    }
+
+    .media-detail-value {
+        flex: 1;
+    }
+
+    .detail-preview {
+        max-height: 250px;
+        object-fit: contain;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function isImage(format) {
+            return ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(format.toLowerCase());
+        }
+
+        function isVideo(format) {
+            return ['.mp4', '.webm', '.ogg'].includes(format.toLowerCase());
+        }
+
+        function previewMedia(id, format) {
+            const url = `/api/MediaFiles/play/${id}`;
+            let content = isImage(format)
+                ? `<img src="${url}" class="img-fluid" alt="Preview">`
+                : isVideo(format)
+                    ? `<video controls autoplay class="w-100"><source src="${url}" type="video/${format.replace('.', '')}" /></video>`
+                    : `<p>Không hỗ trợ xem trước.</p>`;
+
+            $('#mediaModalContent').html(content);
+            new bootstrap.Modal(document.getElementById('mediaModal')).show();
+        }
+
+        function loadMediaFiles() {
+            $.get('/api/MediaFiles', function (data) {
+                let html = '';
+                data.items.forEach(item => {
+                    const preview = isImage(item.format)
+                        ? `<img src="/api/MediaFiles/play/${item.id}" class="card-img-top" style="max-height: 200px; object-fit: cover; border-radius: 6px 6px 0 0;">`
+                        : isVideo(item.format)
+                            ? `<video class="card-img-top" style="max-height: 200px;" muted>
+                                   <source src="/api/MediaFiles/play/${item.id}" type="${item.fileType}" />
+                               </video>`
+                            : `<div class="bg-light text-center p-5">Không hỗ trợ</div>`;
+
+                    html += `
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            ${preview}
+                            <div class="card-body">
+                                <h6 class="card-title text-truncate">${item.fileName}</h6>
+                                <p class="card-text small">${(item.fileSize / 1024).toFixed(2)} KB</p>
+                                <p class="card-text small text-muted">${new Date(item.uploadedAt).toLocaleString()}</p>
+                                <div class="d-flex justify-content-between flex-wrap gap-1">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="previewMedia(${item.id}, '${item.format}')">👁 Xem</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="editFile(${item.id}, '${item.fileName}', '${item.uploadedBy}')">✏️ Sửa</button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteFile(${item.id})">🗑 Xoá</button>
+                                    <button class="btn btn-outline-info btn-sm" onclick='showDetail(${item.id})'>🧾 Chi tiết</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                $('#mediaContainer').html(html);
+            }).fail(() => {
+                $('#mediaContainer').html('<div class="text-danger">Không thể tải dữ liệu.</div>');
+            });
+        }
+
+        function deleteFile(id) {
+            if (confirm("Xoá file này?")) {
+                $.ajax({
+                    url: `/api/MediaFiles/${id}`,
+                    type: 'DELETE',
+                    success: () => {
+                        alert("Xoá thành công.");
+                        loadMediaFiles();
+                    },
+                    error: () => alert("Xoá thất bại.")
+                });
+            }
+        }
+
+        function editFile(id, name, uploadedBy) {
+            $('#editFileId').val(id);
+            $('#editFileName').val(name);
+            $('#editUploadedBy').val(uploadedBy);
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        function submitEdit() {
+            const id = $('#editFileId').val();
+            const data = {
+                fileName: $('#editFileName').val(),
+                uploadedBy: $('#editUploadedBy').val()
+            };
+
+            $.ajax({
+                url: `/api/MediaFiles/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function () {
+                    $('#editModal').modal('hide');
+                    loadMediaFiles();
+                },
+                error: function () {
+                    alert("Cập nhật thất bại.");
+                }
+            });
+        }
+
+        function showDetail(id) {
+            $.get(`/api/MediaFiles/${id}`, function (item) {
+                const fileUrl = `/api/MediaFiles/play/${item.id}`;
+                let previewHtml = '';
+                if (isImage(item.format)) {
+                    previewHtml = `<img src="${fileUrl}" class="detail-preview img-fluid" alt="Preview">`;
+                } else if (isVideo(item.format)) {
+                    previewHtml = `
+                        <video controls autoplay muted class="detail-preview w-100">
+                            <source src="${fileUrl}" type="video/${item.format.replace('.', '')}" />
+                        </video>`;
+                } else {
+                    previewHtml = `<div class="alert alert-warning">Không hỗ trợ xem trước định dạng này.</div>`;
+                }
+
+                $('#detailMediaPreview').html(previewHtml);
+
+                const rows = [
+                    { icon: '📝', label: 'Tên file', value: item.fileName },
+                    { icon: '📄', label: 'Loại', value: item.fileType },
+                    { icon: '📦', label: 'Định dạng', value: item.format },
+                    { icon: '💾', label: 'Kích thước', value: `${(item.fileSize / 1024).toFixed(2)} KB` },
+                    { icon: '👤', label: 'Người upload', value: item.uploadedBy },
+                    { icon: '⏰', label: 'Thời gian upload', value: new Date(item.uploadedAt).toLocaleString() },
+                    { icon: '🔖', label: 'Tags', value: item.tags || '-' },
+                    { icon: '📘', label: 'Mô tả', value: item.description || '-' },
+                    { icon: '📁', label: 'Đường dẫn', value: item.storagePath },
+                    { icon: '🔐', label: 'Hash', value: item.hash || '-' },
+                    { icon: '📊', label: 'Thông tin Media', value: item.mediaInfo || '-' },
+                    { icon: '📌', label: 'Trạng thái', value: item.status }
+                ];
+
+                let html = '';
+                rows.forEach(row => {
+                    html += `
+                        <div class="media-detail-item">
+                            <i>${row.icon}</i>
+                            <div class="media-detail-label">${row.label}:</div>
+                            <div class="media-detail-value">${row.value}</div>
+                        </div>`;
+                });
+
+                $('#detailInfoContainer').html(html);
+                new bootstrap.Modal(document.getElementById('detailModal')).show();
+            });
+        }
+
+        $(document).ready(loadMediaFiles);
+    </script>
+}
