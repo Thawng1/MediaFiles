@@ -1,19 +1,19 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿//using Microsoft.Extensions.DependencyInjection;
 
-namespace HD.Station.Home.SqlServer.FeatureBuilder
-{
-    public interface IHomeFeatureBuilder
-    {
-        IServiceCollection Services { get; }
-    }
+//namespace HD.Station.Home.SqlServer.FeatureBuilder
+//{
+//    public interface IHomeFeatureBuilder
+//    {
+//        IServiceCollection Services { get; }
+//    }
 
-    public class HomeFeatureBuilder : IHomeFeatureBuilder
-    {
-        public HomeFeatureBuilder(IServiceCollection services)
-        {
-            Services = services;
-        }
+//    public class HomeFeatureBuilder : IHomeFeatureBuilder
+//    {
+//        public HomeFeatureBuilder(IServiceCollection services)
+//        {
+//            Services = services;
+//        }
 
-        public IServiceCollection Services { get; }
-    }
-}
+//        public IServiceCollection Services { get; }
+//    }
+//}

@@ -1,23 +1,21 @@
 ﻿using HD.Station.Home.SqlServer.Abtractions;
 using HD.Station.Home.SqlServer.Data;
-using HD.Station.Home.SqlServer.FeatureBuilder;
 using HD.Station.Home.SqlServer.Store;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection; 
-namespace Microsoft.Extensions.DependencyInjection 
+
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class DependencyInjectionExtensions 
+    public static class SqlServerDependencyInjectionExtensions
     {
-        public static IHomeFeatureBuilder UseSqlServer(this IHomeFeatureBuilder builder, IConfiguration configuration)
+        public static IServiceCollection UseSqlServer(this IServiceCollection services, IConfiguration configuration)
         {
-            builder.Services.AddDbContext<HomeDbContext>(options =>
-     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<HomeDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddScoped<IProductStore, MediaFileStore>();
+            services.AddScoped<IProductStore, MediaFileStore>();
 
-
-            return builder;
+            return services;
         }
     }
 }
