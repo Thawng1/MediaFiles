@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "HD.Station.Home.Mvc": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53631;http://localhost:53632"
+    }
+  }
+}

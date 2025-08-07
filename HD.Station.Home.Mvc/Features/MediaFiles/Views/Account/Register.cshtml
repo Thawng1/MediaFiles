@@ -1,0 +1,54 @@
+﻿@using HD.Station.Home.Mvc.Features.MediaFiles.Models
+@model RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "/Features/MediaFiles/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4 text-success">Đăng ký tài khoản</h3>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success text-center">@TempData["SuccessMessage"]</div>
+                }
+
+                <form asp-action="Register" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input name="Email" asp-for="Email" class="form-control" placeholder="Nhập email..." />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input name="Password" asp-for="Password" class="form-control" type="password" placeholder="Tối thiểu 6 ký tự..." />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input name="ConfirmPassword" asp-for="ConfirmPassword" class="form-control" type="password" placeholder="Xác nhận lại mật khẩu..." />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Đăng ký</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

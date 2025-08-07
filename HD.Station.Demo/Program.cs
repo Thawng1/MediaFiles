@@ -1,16 +1,72 @@
-﻿using HD.Station.Home.Mvc.Features.MediaFiles.Controllers; // Để hỗ trợ AddApplicationPart nếu cần
+﻿using HD.Station.Home.Abstraction.DependencyInjection;
+using HD.Station.Home.SqlServer.Data;
+using HD.Station.Home.SqlServer.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Gọi các extension method đã tách riêng cho từng layer
+
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+    .AddEntityFrameworkStores<HomeDbContext>()
+    .AddDefaultTokenProviders();
+
+
 builder.Services
-    .AddMvcFeature(builder.Configuration)     // từ HD.Station.Home.Mvc.DependencyInjection
-    .UseSqlServer(builder.Configuration);     // từ HD.Station.Home.SqlServer.DependencyInjection
+    .AddMvcFeature(builder.Configuration)
+    .AddAbstractionFeature(builder.Configuration)
+    .UseSqlServer(builder.Configuration);
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
 
 var app = builder.Build();
 
-// Middleware pipeline
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+    string email = "admin@example.com";
+    string password = "Admin@123456";
+
+    var user = await userManager.FindByEmailAsync(email);
+    if (user == null)
+    {
+        var newUser = new AppUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(newUser, password);
+        if (result.Succeeded)
+        {
+            Console.WriteLine("✅ Tạo user admin thành công.");
+        }
+        else
+        {
+            Console.WriteLine("❌ Lỗi khi tạo user:");
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"- {error.Description}");
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine("⚠️ User đã tồn tại.");
+    }
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/MediaFileView/Error");
@@ -21,9 +77,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Routing mặc định cho controller có View
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=MediaFileView}/{action=Index}/{id?}");

@@ -8,6 +8,7 @@
 
 <div class="mb-3">
     <a href="/MediaFileView/Index" class="btn btn-secondary">← Danh sách File</a>
+
 </div>
 
 <div id="result" class="my-3"></div>
@@ -29,6 +30,15 @@
         <label class="form-label">Người Upload</label>
         <input type="text" name="UploadedBy" class="form-control" required />
     </div>
+    <div class="mb-3">
+        <label class="form-label">Nơi lưu trữ</label>
+        <select name="UploadMethod" class="form-select" required>
+            <option value="Local">Local</option>
+            <option value="UNC">UNC</option>
+            <option value="FTP">FTP</option>
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-primary">⬆️ Tải lên</button>
 </form>
 

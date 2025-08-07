@@ -1,6 +1,8 @@
 ﻿using HD.Station.Home.SqlServer.Abtractions;
 using HD.Station.Home.SqlServer.Data;
+using HD.Station.Home.SqlServer.Models;
 using HD.Station.Home.SqlServer.Store;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

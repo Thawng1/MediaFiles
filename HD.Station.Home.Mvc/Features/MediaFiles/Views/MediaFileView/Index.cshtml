@@ -15,6 +15,12 @@
         <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
         <span class="fw-semibold">Tải lên File</span>
     </a>
+    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" formaction="/Account/Logout" class="btn btn-outline-danger">
+            Đăng xuất
+        </button>
+    </form>
 </div>
 
 

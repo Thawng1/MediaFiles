@@ -8,5 +8,6 @@ namespace HD.Station.Home.Abstraction.Dtos
         public string UploadedBy { get; set; }
         public string Tags { get; set; }
         public string Description { get; set; }
+        public string UploadMethod { get; set; }
     }
 }

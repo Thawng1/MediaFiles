@@ -11,17 +11,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions" Version="6.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.18" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\HD.Station.Home.Abstraction\HD.Station.Home.Abstraction.csproj" />
 	  <ProjectReference Include="..\HD.Station.Home.SqlServer\HD.Station.Home.SqlServer.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Features\MediaFiles\Models\" />
 	</ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using HD.Station.Home.Abstraction.Configuration;
 using HD.Station.Home.Abstraction.Dtos;
 using HD.Station.Home.Mvc.Features.Service;
 using HD.Station.Home.SqlServer.Abtractions;
@@ -7,6 +7,8 @@ using HD.Station.Home.SqlServer.Models;
 using HD.Station.Home.SqlServer.Store;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace HD.Station.Home.Mvc.Features.MediaFiles.Controllers;
 
@@ -16,12 +18,14 @@ namespace HD.Station.Home.Mvc.Features.MediaFiles.Controllers;
     {
         private readonly MediaService _mediaService;
         private readonly HomeDbContext _context;
+    private readonly MediaStorageOptions _storageOptions;
 
-        public MediaFilesController(MediaService mediaService, HomeDbContext context)
-        {
+    public MediaFilesController(MediaService mediaService, HomeDbContext context, IOptions<MediaStorageOptions> options)
+    {
             _mediaService = mediaService;
             _context = context;
-        }
+            _storageOptions = options.Value;
+    }
 
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm] MediaUploadDto dto)
@@ -69,6 +73,8 @@ namespace HD.Station.Home.Mvc.Features.MediaFiles.Controllers;
         await _context.SaveChangesAsync();
         return Ok(file);
     }
+
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDetail(int id)
     {
@@ -80,23 +86,40 @@ namespace HD.Station.Home.Mvc.Features.MediaFiles.Controllers;
 
 
     [HttpGet("play/{id}")]
-        public IActionResult Play(int id)
+    public IActionResult Play(int id)
+    {
+        var file = _context.MediaFiles.Find(id);
+        if (file == null) return NotFound();
+
+        string physicalPath;
+
+        if (file.StoragePath.StartsWith("ftp://"))
         {
-            var file = _context.MediaFiles.Find(id);
-            if (file == null) return NotFound();
-
-            string physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", file.StoragePath.TrimStart('/'));
-
-            if (!System.IO.File.Exists(physicalPath)) return NotFound();
-
-            var stream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
-            var mime = GetMimeType(file.Format);
-            return File(stream, mime);
-
+            return BadRequest("Không thể stream trực tiếp từ FTP");
+        }
+        else if (file.StoragePath.StartsWith("/uploads"))
+        {
+            // Local
+            physicalPath = Path.Combine(_storageOptions.LocalPath, file.StoragePath.TrimStart('/'));
+        }
+        else
+        {
+            // UNC
+            physicalPath = Path.Combine(_storageOptions.UNCPath, file.StoragePath);
         }
 
+        if (!System.IO.File.Exists(physicalPath))
+            return NotFound($"Không tìm thấy file tại {physicalPath}");
 
-        [HttpDelete("{id}")]
+        var stream = new FileStream(physicalPath, FileMode.Open, FileAccess.Read);
+        var mime = GetMimeType(file.Format);
+        return File(stream, mime);
+    }
+
+
+
+
+    [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var file = await _context.MediaFiles.FindAsync(id);

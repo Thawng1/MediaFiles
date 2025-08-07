@@ -1,4 +1,5 @@
 ﻿using HD.Station.Home.SqlServer.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace HD.Station.Home.Mvc.Features.MediaFiles.Controllers
         {
             _context = context;
         }
-
+        [Authorize]
         public IActionResult Index()
         {
             var files = _context.MediaFiles

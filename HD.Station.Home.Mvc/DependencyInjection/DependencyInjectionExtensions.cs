@@ -19,8 +19,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddRazorOptions(options =>
                 {
                     options.ViewLocationFormats.Add("/Features/MediaFiles/Views/MediaFileView/{0}.cshtml");
+                    options.ViewLocationFormats.Add("/Features/MediaFiles/Views/Account/{0}.cshtml");
                     options.ViewLocationFormats.Add("/Features/MediaFiles/Views/Shared/{0}.cshtml");
-                    options.ViewLocationFormats.Add("/Features/Shared/{0}.cshtml");
+                    
                 });
 
             return services;
